@@ -1,0 +1,44 @@
+name: 🔄 Update Kodi Playlist
+
+on:
+  push:
+    paths:
+      - kodi.py  # 📜 Trigger on script update
+  schedule:
+    - cron: '*/15 * * * *'  # ⏰ Every 15 minutes
+  workflow_dispatch:  # 🔘 Manual trigger option
+
+jobs:
+  update-playlist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+          fetch-depth: 0  # 🧠 Full git history
+
+      - name: 🐍 Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 📦 Install Dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: ⚙️ Run Kodi Playlist Generator
+        run: python3 kodi.py
+
+      - name: 🔧 Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: 💾 Commit & Push Changes
+        run: |
+          git add MergedPlaylist_Kodi.m3u8
+          git commit -m "📡 Auto-update Kodi formatted playlist" || echo "🟡 No changes to commit"
+          git pull --rebase
+          git push origin main
